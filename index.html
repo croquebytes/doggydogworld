@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dog Treat Tycoon - Idle Incremental</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="dog-emoji">DOGS</div>
+        <h1>Dog Treat Tycoon</h1>
+        <p class="tagline">Two pups. One empire. Infinite treats.</p>
+      </div>
+      <div class="header-dogs">
+        <img id="headerScout" class="pixel-img dog-idle" src="assets/img/dogs/scout-idle.png" alt="Scout" width="48" height="48">
+        <img id="headerPatch" class="pixel-img dog-idle" src="assets/img/dogs/patch-idle.png" alt="Patch" width="48" height="48">
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <img class="stat-icon pixel-img" src="assets/img/icons/treat.png" alt="" width="16" height="16">
+          <span id="treats">0</span> Treats
+        </div>
+        <div class="stat">
+          <img class="stat-icon pixel-img" src="assets/img/icons/timer.png" alt="" width="16" height="16">
+          <span id="tps">0</span> / sec
+        </div>
+        <div class="stat prestige">
+          <img class="stat-icon pixel-img" src="assets/img/icons/bone.png" alt="" width="16" height="16">
+          <span id="alphaBones">0</span> Alpha Bones
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="overview" class="active">Overview</button>
+      <button data-tab="buildings">Buildings</button>
+      <button data-tab="upgrades">Upgrades</button>
+      <button data-tab="research">Research</button>
+      <button data-tab="dispatch">Dispatch</button>
+      <button data-tab="marketing">Marketing</button>
+      <button data-tab="space">Space</button>
+      <button data-tab="policy">Policy</button>
+      <button data-tab="prestige">Prestige</button>
+      <button data-tab="settings">Settings</button>
+    </nav>
+
+    <main class="tab-content">
+      <section id="overview" class="tab active">
+        <div class="hero">
+          <div class="pixel-card">
+            <canvas id="heroScoutSprite" class="sprite-canvas" width="64" height="64" aria-label="Scout sprite"></canvas>
+            <p>Scout: clicks for extra treats.</p>
+            <button id="clickTreat" class="primary">Bake Treat (+1)</button>
+          </div>
+          <div class="pixel-card">
+            <canvas id="heroPatchSprite" class="sprite-canvas" width="64" height="64" aria-label="Patch sprite"></canvas>
+            <p>Patch: automates production.</p>
+            <button id="buyAuto" class="secondary">Hire Pup Intern (50)</button>
+            <div class="tiny">Interns: <span id="interns">0</span></div>
+          </div>
+        </div>
+
+        <div class="pixel-card" id="nextGoalPanel">
+          <h3>Next Goal</h3>
+          <div id="nextGoalContent">
+            <p id="nextGoalText">Build your first Farm Plot to start producing treats automatically!</p>
+            <div class="progress-bar">
+              <div id="nextGoalProgress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <p id="nextGoalHint" class="tiny"></p>
+          </div>
+        </div>
+
+        <div class="summary">
+          <h3>Production</h3>
+          <ul id="productionList"></ul>
+        </div>
+      </section>
+
+      <section id="buildings" class="tab">
+        <h2>Buildings</h2>
+        <div id="buildingList" class="grid"></div>
+      </section>
+
+      <section id="upgrades" class="tab">
+        <h2>Upgrades</h2>
+        <div id="upgradeList" class="grid"></div>
+      </section>
+
+      <section id="research" class="tab">
+        <h2>Research</h2>
+        <p>Queue long-term breakthroughs to automate and amplify production.</p>
+        <div class="research-controls">
+          <button id="researchPause" class="ghost">Pause</button>
+          <button id="researchResume" class="ghost">Resume</button>
+        </div>
+        <div id="activeResearch" class="card hidden"></div>
+        <div id="researchQueue" class="grid"></div>
+        <h3>Available Research</h3>
+        <div id="researchAvailable" class="grid"></div>
+      </section>
+
+      <section id="dispatch" class="tab">
+        <h2>Pack Dispatch</h2>
+        <p>Send pups on timed missions for treats, reputation, and relics.</p>
+        <div class="dispatch-roster card">
+          <h3>Pack Roster</h3>
+          <ul id="dispatchRoster"></ul>
+        </div>
+        <div class="dispatch-missions grid" id="dispatchMissionList"></div>
+        <h3>Active Missions</h3>
+        <div id="dispatchActive" class="grid"></div>
+      </section>
+
+      <section id="marketing" class="tab">
+        <h2>Human Influencers</h2>
+        <p>Run viral campaigns to earn clout and spike production.</p>
+        <div class="card">
+          <div class="meta">Clout: <span id="clout">0</span></div>
+          <div class="meta">Active Campaign: <span id="activeCampaign">None</span></div>
+          <div class="actions">
+            <button id="startCampaign" class="primary">Launch Campaign</button>
+            <button id="buyAudience" class="ghost">Buy Audience (25 Clout)</button>
+          </div>
+        </div>
+        <h3>Campaign Library</h3>
+        <div id="campaignList" class="grid"></div>
+      </section>
+
+      <section id="space" class="tab">
+        <h2>Space Routes</h2>
+        <p>Ship treats across the solar system to earn Stardust and unlock Constellations.</p>
+        <div class="card">
+          <div class="meta">Stardust: <span id="stardust">0</span></div>
+          <div class="meta">Active Routes: <span id="activeRoutesCount">0</span>/3</div>
+        </div>
+        <div id="spaceRouteList" class="grid"></div>
+        <h3>Active Routes</h3>
+        <div id="spaceActive" class="grid"></div>
+      </section>
+
+      <section id="policy" class="tab">
+        <h2>Policy & Treat Tax</h2>
+        <p>Balance public support with taxation to fund permanent perks.</p>
+        <div class="card">
+          <label for="taxSlider">Treat Tax: <span id="taxRateLabel">0%</span></label>
+          <input type="range" id="taxSlider" min="0" max="5" value="0" step="0.5">
+          <div class="meta">Policy Points: <span id="policyPoints">0</span></div>
+          <div class="meta">Votes: <span id="votes">0</span></div>
+          <div class="meta">Public Support: <span id="support">100%</span></div>
+        </div>
+        <h3>Policy Board</h3>
+        <div id="policyList" class="grid"></div>
+      </section>
+
+      <section id="prestige" class="tab">
+        <h2>Pack Ascension</h2>
+        <p>Retire your current factory to earn <b>Alpha Bones</b>, granting a permanent global production boost.</p>
+        <p>You will earn: <b id="bonesGain">0</b> Alpha Bones if you ascend now.</p>
+        <button id="ascend" class="danger">Ascend & Reform the Pack</button>
+        <div class="tiny">Formula: floor((log10(Treats) - 6) ^ 1.5), minimum 0.</div>
+      </section>
+
+      <section id="settings" class="tab">
+        <h2>Settings</h2>
+        <div class="settings-grid">
+          <button id="saveBtn">Save Now</button>
+          <button id="exportBtn">Export Save</button>
+          <button id="importBtn">Import Save</button>
+          <button id="resetBtn" class="danger">Hard Reset</button>
+        </div>
+        <textarea id="saveArea" placeholder="Paste save here for Import / copy from Export"></textarea>
+        <div class="tiny">Autosaves every 30s. Offline progress supported.</div>
+      </section>
+    </main>
+
+    <footer id="tracker" class="tracker collapsed" data-expanded="false">
+      <div class="tracker-banner">
+        <img id="trackerBannerImg" class="pixel-img banner-img" src="assets/img/banners/starter.png" alt="Factory Banner" width="800" height="80">
+      </div>
+      <button id="trackerToggle" class="tracker-toggle" aria-expanded="false" aria-controls="trackerDetails">
+        <span class="toggle-icon">^</span>
+        <span class="toggle-text">Expand Tracker</span>
+      </button>
+      <div class="tracker-body">
+        <div class="tracker-collapsed">
+          <div class="tracker-stats">
+            <div class="stat">
+              <img class="stat-icon pixel-img" src="assets/img/icons/treat.png" alt="" width="16" height="16">
+              <span id="trackerTreats">0</span> Treats
+            </div>
+            <div class="stat">
+              <img class="stat-icon pixel-img" src="assets/img/icons/timer.png" alt="" width="16" height="16">
+              <span id="trackerTPS">0</span> / sec
+            </div>
+            <div class="stat">
+              <img class="stat-icon pixel-img" src="assets/img/icons/bone.png" alt="" width="16" height="16">
+              <span id="trackerBones">0</span> Bones
+            </div>
+          </div>
+          <div class="tracker-sprite">
+            <canvas id="trackerDog" width="64" height="64" aria-label="Tracker pup"></canvas>
+          </div>
+        </div>
+        <div id="trackerDetails" class="tracker-expanded" role="region" aria-label="Production breakdown">
+          <div class="tracker-section">
+            <h4>Top Production</h4>
+            <ul id="trackerBreakdown" class="tracker-list"></ul>
+          </div>
+          <div class="tracker-section">
+            <h4>Average TPS</h4>
+            <div class="tracker-avg" id="trackerAvgTPS">0</div>
+            <div class="tracker-actions">
+              <button data-track-action="save">Save</button>
+              <button data-track-action="export">Export</button>
+              <button data-track-action="settings">Settings</button>
+            </div>
+          </div>
+          <div class="tracker-section">
+            <h4>Event Feed</h4>
+            <ul id="trackerFeed" class="tracker-list"></ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toastStack" class="toast-stack"></div>
+    <div id="tooltip" class="tooltip hidden"></div>
+    <div id="eventModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 id="eventTitle"></h3>
+        <p id="eventDescription"></p>
+        <div id="eventChoices" class="event-choices"></div>
+        <button id="eventDismiss" class="ghost">Skip</button>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <span>v0.1.0 prototype - Basic pixel UI - All values WIP</span>
+    </footer>
+  </div>
+  <script src="sprite.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

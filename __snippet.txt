@@ -1,0 +1,6 @@
+  if (missions) {
+    missions.innerHTML = DISPATCH_MISSIONS.map(function (mission) {
+      return `<div class="card">
+        <h4>${mission.name}</h4>
+        <div class="meta">${mission.description}</div>
+        <div class="meta">Duration: ${formatTime(mission.duration)}</div>
