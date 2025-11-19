@@ -1407,6 +1407,12 @@ function render() {
   $("#alphaBones").textContent = num.format(State.prestige.bones);
   $("#interns").textContent = State.interns;
 
+  const buyAutoBtn = $("#buyAuto");
+  if (buyAutoBtn) {
+    const internCost = DATA.internCost * Math.pow(1.2, State.interns);
+    buyAutoBtn.textContent = `Hire Pup Intern (${num.format(internCost)})`;
+  }
+
     $("#productionList").innerHTML = DATA.buildings.map(([id, name]) => {
     const count = State.buildings[id];
     if (count <= 0) return "";
@@ -1712,13 +1718,16 @@ function bindUI() {
     });
   }
 
-  $("#buyAuto").addEventListener("click", () => {
-    if (buyIntern()) {
-      Toasts.push("New pup intern hired!", "success");
-    } else {
-      Toasts.push("Need more treats for an intern", "error");
-    }
-  });
+  const buyAutoBtn = $("#buyAuto");
+  if (buyAutoBtn) {
+    buyAutoBtn.addEventListener("click", () => {
+      if (buyIntern()) {
+        Toasts.push("New pup intern hired!", "success");
+      } else {
+        Toasts.push("Need more treats for an intern", "error");
+      }
+    });
+  }
 
   const buildingListElement = $("#buildingList");
   if (buildingListElement) {
@@ -1759,35 +1768,58 @@ function bindUI() {
     }
   });
 
-  $("#ascend").addEventListener("click", ascend);
+  const ascendBtn = $("#ascend");
+  if (ascendBtn) {
+    ascendBtn.addEventListener("click", ascend);
+  }
 
-  $("#saveBtn").addEventListener("click", () => {
-    save(true);
-    logEvent("Manual save complete.", "system");
-  });
-  $("#exportBtn").addEventListener("click", () => {
-    save();
-    $("#saveArea").value = localStorage.getItem("dog_treat_tycoon_save") || "";
-  });
-  $("#importBtn").addEventListener("click", () => {
-    const raw = $("#saveArea").value.trim();
-    if (!raw) return;
-    try {
-      const obj = JSON.parse(atob(raw));
-      localStorage.setItem("dog_treat_tycoon_save", raw);
-      Object.assign(State, obj);
-      Game.mod = freshModifiers();
-      Toasts.push("Import successful!", "success");
-      render();
-    } catch (err) {
-      alert("Import failed. Ensure you pasted the Export text exactly.");
-    }
-  });
-  $("#resetBtn").addEventListener("click", () => {
-    if (!confirm("Hard reset? This cannot be undone.")) return;
-    localStorage.removeItem("dog_treat_tycoon_save");
-    location.reload();
-  });
+  const saveBtn = $("#saveBtn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      save(true);
+      logEvent("Manual save complete.", "system");
+    });
+  }
+
+  const exportBtn = $("#exportBtn");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      save();
+      const saveArea = $("#saveArea");
+      if (saveArea) {
+        saveArea.value = localStorage.getItem("dog_treat_tycoon_save") || "";
+      }
+    });
+  }
+
+  const importBtn = $("#importBtn");
+  if (importBtn) {
+    importBtn.addEventListener("click", () => {
+      const saveArea = $("#saveArea");
+      if (!saveArea) return;
+      const raw = saveArea.value.trim();
+      if (!raw) return;
+      try {
+        const obj = JSON.parse(atob(raw));
+        localStorage.setItem("dog_treat_tycoon_save", raw);
+        Object.assign(State, obj);
+        Game.mod = freshModifiers();
+        Toasts.push("Import successful!", "success");
+        render();
+      } catch (err) {
+        alert("Import failed. Ensure you pasted the Export text exactly.");
+      }
+    });
+  }
+
+  const resetBtn = $("#resetBtn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (!confirm("Hard reset? This cannot be undone.")) return;
+      localStorage.removeItem("dog_treat_tycoon_save");
+      location.reload();
+    });
+  }
 
   const researchAvailable = document.getElementById("researchAvailable");
   if (researchAvailable) {
