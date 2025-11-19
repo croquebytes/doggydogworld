@@ -131,6 +131,9 @@ const ACHIEVEMENTS = [
   { id: "ten_upgrades", name: "Tech Savvy", reward: "+5% global production", check: function () { return Object.keys(State.upgradesBought).length >= 10; }, effect: function (mod) { mod.global *= 1.05; } },
   { id: "prestige_ten", name: "Alpha Elite", reward: "+10% global production", check: function () { return State.prestige.bones >= 10; }, effect: function (mod) { mod.global *= 1.1; } },
   { id: "prestige_twenty", name: "Omega Leader", reward: "+15% global production", check: function () { return State.prestige.bones >= 20; }, effect: function (mod) { mod.global *= 1.15; } },
+  { id: "constellation_first", name: "Stargazer", reward: "+20% global production", check: function () { return (State.prestige.constellationBones || 0) >= 1; }, effect: function (mod) { mod.global *= 1.2; } },
+  { id: "synergy_master", name: "Synergy Master", reward: "+5% global production", check: function () { return State.buildings.dyson >= 1 && State.buildings.plot >= 10; }, effect: function (mod) { mod.global *= 1.05; } },
+  { id: "five_prestiges", name: "Ascension Veteran", reward: "+5% global production", check: function () { return (State.prestige.totalPrestiges || 0) >= 5; }, effect: function (mod) { mod.global *= 1.05; } },
 ];
 
 const MILESTONES = {
@@ -1625,6 +1628,7 @@ function render() {
   renderMarketingSection();
   renderSpaceSection();
   renderPolicySection();
+  renderAchievements();
   updateNextGoal();
   updateClickButton();
 
@@ -1866,6 +1870,31 @@ function renderPolicySection() {
         </div>
       </div>`;
     }).join("");
+  }
+}
+
+function renderAchievements() {
+  const achievementList = document.getElementById("achievementList");
+  const achievementProgress = document.getElementById("achievementProgress");
+  if (!achievementList) return;
+
+  let unlocked = 0;
+  const total = ACHIEVEMENTS.length;
+
+  const markup = ACHIEVEMENTS.map(function(ach) {
+    const achieved = !!State.achievements[ach.id];
+    if (achieved) unlocked++;
+
+    return `<div class="card ${achieved ? "achievement-unlocked" : "achievement-locked"}">
+      <h4>${achieved ? "✅" : "🔒"} ${ach.name}</h4>
+      <div class="meta">${ach.reward}</div>
+      <div class="tiny">${achieved ? "Unlocked!" : "Locked"}</div>
+    </div>`;
+  }).join("");
+
+  achievementList.innerHTML = markup;
+  if (achievementProgress) {
+    achievementProgress.textContent = `${unlocked}/${total}`;
   }
 }
 
