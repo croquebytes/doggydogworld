@@ -200,6 +200,8 @@ const State = {
   researchBought: {},
   prestige: {
     bones: 0,
+    constellationBones: 0,
+    totalPrestiges: 0,
   },
   meta: {
     lastSave: Date.now(),
@@ -262,6 +264,7 @@ function freshModifiers() {
   const mod = { global: 1, click: 1 };
   for (const [id] of DATA.buildings) mod[id] = 1;
   mod.global *= 1 + (State.prestige.bones * 0.1);
+  mod.global *= Math.pow(1.25, State.prestige.constellationBones || 0);
   applyAchievementRewards(mod);
   applyMilestoneRewards(mod);
   if (State.research.permanent.auto1) mod.global *= 1.05;
@@ -281,6 +284,25 @@ function freshModifiers() {
     mod.launch *= 1.1;
     mod.dyson *= 1.05;
   }
+
+  // Building Synergies: Downstream buildings buff upstream
+  const synergies = [
+    { from: "oven", to: "plot", bonus: 0.005 },      // Each Oven: +0.5% to Plots
+    { from: "line", to: "oven", bonus: 0.005 },      // Each Line: +0.5% to Ovens
+    { from: "truck", to: "line", bonus: 0.01 },      // Each Truck: +1% to Lines
+    { from: "robot", to: "truck", bonus: 0.01 },     // Each Robot: +1% to Trucks
+    { from: "lab", to: "robot", bonus: 0.015 },      // Each Lab: +1.5% to Robots
+    { from: "launch", to: "lab", bonus: 0.02 },      // Each Launch: +2% to Labs
+    { from: "dyson", to: "launch", bonus: 0.025 },   // Each Dyson: +2.5% to Launches
+  ];
+
+  synergies.forEach(function(syn) {
+    const count = State.buildings[syn.from] || 0;
+    if (count > 0) {
+      mod[syn.to] *= 1 + (count * syn.bonus);
+    }
+  });
+
   return mod;
 }
 
@@ -479,6 +501,23 @@ function buildingTPS(id) {
 
 function internTPS() {
   return State.interns * 0.25 * Game.mod.click * Game.mod.global;
+}
+
+function getBuildingSynergies(buildingId) {
+  const synergies = [
+    { from: "oven", to: "plot", bonus: 0.005 },
+    { from: "line", to: "oven", bonus: 0.005 },
+    { from: "truck", to: "line", bonus: 0.01 },
+    { from: "robot", to: "truck", bonus: 0.01 },
+    { from: "lab", to: "robot", bonus: 0.015 },
+    { from: "launch", to: "lab", bonus: 0.02 },
+    { from: "dyson", to: "launch", bonus: 0.025 },
+  ];
+
+  const inbound = synergies.filter(function(s) { return s.to === buildingId; });
+  const outbound = synergies.filter(function(s) { return s.from === buildingId; });
+
+  return { inbound: inbound, outbound: outbound };
 }
 
 function totalTPS() {
@@ -1376,6 +1415,7 @@ function ascend() {
     return;
   }
   State.prestige.bones += gain;
+  State.prestige.totalPrestiges = (State.prestige.totalPrestiges || 0) + 1;
   State.treats = 0;
   State.interns = 0;
   for (const [id] of DATA.buildings) State.buildings[id] = 0;
@@ -1384,6 +1424,50 @@ function ascend() {
   Game.mod = freshModifiers();
   logEvent(`Ascended! +${gain} Alpha Bones.`, "success");
   Toasts.push(`Ascended for ${num.format(gain)} Alpha Bones`, "success");
+  renderBuildings();
+  checkUnlocks();
+}
+
+function constellationBonesGainIfAscend(alphaBones) {
+  if (alphaBones < 10) return 0;
+  const val = Math.max(0, Math.log2(alphaBones) - 3.32);
+  return Math.floor(val);
+}
+
+function constellationAscend() {
+  if (State.prestige.bones < 10) {
+    Toasts.push("Need at least 10 Alpha Bones to ascend to Constellations", "error");
+    return;
+  }
+  const gain = constellationBonesGainIfAscend(State.prestige.bones);
+  if (gain <= 0) {
+    Toasts.push("No Constellation Bones available yet", "error");
+    return;
+  }
+  if (!confirm(`Constellation Ascension will reset your Alpha Bones and all progress, keeping only Constellation Bones and Achievements. Gain ${num.format(gain)} Constellation Bones?`)) {
+    return;
+  }
+
+  State.prestige.constellationBones += gain;
+  State.prestige.bones = 0;
+  State.prestige.totalPrestiges = 0;
+  State.treats = 0;
+  State.interns = 0;
+  for (const [id] of DATA.buildings) State.buildings[id] = 0;
+  State.upgradesBought = {};
+  State.researchBought = {};
+  State.dispatch.active = [];
+  State.marketing.active = null;
+  State.marketing.clout = 0;
+  State.research.active = null;
+  State.research.queue = [];
+  State.space.active = [];
+  State.space.stardust = 0;
+  State.politics.policyPoints = 0;
+  State.politics.votes = 0;
+  Game.mod = freshModifiers();
+  logEvent(`CONSTELLATION ASCENSION! +${gain} Constellation Bones`, "success");
+  Toasts.push(`Ascended to the Stars! +${num.format(gain)} Constellation Bones`, "success");
   renderBuildings();
   checkUnlocks();
 }
@@ -1445,7 +1529,30 @@ function renderBuildings() {
     const currentTotalTPS = totalTPS();
     const percentOfTotal = currentTotalTPS > 0 ? (totalProduction / currentTotalTPS * 100).toFixed(1) : 0;
 
-    const tooltip = `${name}\n\nBase TPS: ${num.format2(baseTPS)}\nCurrent TPS per unit: ${num.format2(tps)}\nTotal production: ${num.format2(totalProduction)}/s\n(${percentOfTotal}% of total)\n\nCost scale: x${scale.toFixed(3)}\nOwned: ${owned}`;
+    const syns = getBuildingSynergies(id);
+    let synergyText = "";
+
+    if (syns.inbound.length > 0) {
+      synergyText += "\n\nSYNERGIES (receiving):";
+      syns.inbound.forEach(function(s) {
+        const fromDef = getBuildingDef(s.from);
+        const fromName = fromDef ? fromDef[1] : s.from;
+        const count = State.buildings[s.from] || 0;
+        const bonus = (count * s.bonus * 100).toFixed(1);
+        synergyText += `\n  ${fromName}: +${bonus}% (${count} owned)`;
+      });
+    }
+
+    if (syns.outbound.length > 0) {
+      synergyText += "\n\nSYNERGIES (providing):";
+      syns.outbound.forEach(function(s) {
+        const toDef = getBuildingDef(s.to);
+        const toName = toDef ? toDef[1] : s.to;
+        synergyText += `\n  Boosts ${toName} by +${(s.bonus * 100).toFixed(1)}% each`;
+      });
+    }
+
+    const tooltip = `${name}\n\nBase TPS: ${num.format2(baseTPS)}\nCurrent TPS per unit: ${num.format2(tps)}\nTotal production: ${num.format2(totalProduction)}/s\n(${percentOfTotal}% of total)\n\nCost scale: x${scale.toFixed(3)}\nOwned: ${owned}${synergyText}`;
 
     const buyMaxTooltip = `Buy Max: ${name}\n\nPurchase as many as you can afford using an optimized bulk-buy algorithm.`;
 
@@ -1522,6 +1629,35 @@ function render() {
   updateClickButton();
 
   $("#bonesGain").textContent = num.format(bonesGainIfAscend(State.treats));
+
+  const currentBonesEl = $("#currentBones");
+  if (currentBonesEl) currentBonesEl.textContent = num.format(State.prestige.bones);
+
+  const totalPrestigesEl = $("#totalPrestiges");
+  if (totalPrestigesEl) totalPrestigesEl.textContent = num.format(State.prestige.totalPrestiges || 0);
+
+  const currentConstellationBonesEl = $("#currentConstellationBones");
+  if (currentConstellationBonesEl) currentConstellationBonesEl.textContent = num.format(State.prestige.constellationBones || 0);
+
+  const constellationGainEl = $("#constellationGain");
+  const constellationBtn = $("#constellationAscend");
+  const constellationInfoEl = $("#constellationInfo");
+  if (State.prestige.bones >= 10) {
+    const constellationGain = constellationBonesGainIfAscend(State.prestige.bones);
+    if (constellationGainEl) constellationGainEl.textContent = num.format(constellationGain);
+    if (constellationBtn) {
+      constellationBtn.disabled = constellationGain <= 0;
+    }
+    if (constellationInfoEl) {
+      const currentBonus = Math.pow(1.25, State.prestige.constellationBones || 0);
+      const newBonus = Math.pow(1.25, (State.prestige.constellationBones || 0) + constellationGain);
+      constellationInfoEl.textContent = `Current Bonus: ${(currentBonus * 100).toFixed(0)}% → After Ascension: ${(newBonus * 100).toFixed(0)}%`;
+    }
+  } else {
+    if (constellationGainEl) constellationGainEl.textContent = "0";
+    if (constellationBtn) constellationBtn.disabled = true;
+    if (constellationInfoEl) constellationInfoEl.textContent = `Requires at least 10 Alpha Bones to unlock. (Currently: ${State.prestige.bones})`;
+  }
 }
 
 function formatTime(seconds) {
@@ -1890,6 +2026,11 @@ function bindUI() {
   const ascendBtn = $("#ascend");
   if (ascendBtn) {
     ascendBtn.addEventListener("click", ascend);
+  }
+
+  const constellationAscendBtn = $("#constellationAscend");
+  if (constellationAscendBtn) {
+    constellationAscendBtn.addEventListener("click", constellationAscend);
   }
 
   const saveBtn = $("#saveBtn");

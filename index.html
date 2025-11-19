@@ -158,10 +158,21 @@
 
       <section id="prestige" class="tab">
         <h2>Pack Ascension</h2>
-        <p>Retire your current factory to earn <b>Alpha Bones</b>, granting a permanent global production boost.</p>
+        <p>Retire your current factory to earn <b>Alpha Bones</b>, granting a permanent global production boost (+10% each).</p>
+        <p>Current Alpha Bones: <b id="currentBones">0</b> | Total Prestiges: <b id="totalPrestiges">0</b></p>
         <p>You will earn: <b id="bonesGain">0</b> Alpha Bones if you ascend now.</p>
         <button id="ascend" class="danger">Ascend & Reform the Pack</button>
         <div class="tiny">Formula: floor((log10(Treats) - 6) ^ 1.5), minimum 0.</div>
+
+        <hr>
+
+        <h2>Constellation Ascension ✨</h2>
+        <p>A deeper prestige that resets Alpha Bones but grants <b>Constellation Bones</b> (+25% each, multiplicative!).</p>
+        <p>Current Constellation Bones: <b id="currentConstellationBones">0</b></p>
+        <p id="constellationInfo">Requires at least 10 Alpha Bones to unlock.</p>
+        <p>You will earn: <b id="constellationGain">0</b> Constellation Bones if you ascend now.</p>
+        <button id="constellationAscend" class="danger" disabled>Ascend to the Stars</button>
+        <div class="tiny">Formula: floor(log2(Alpha Bones) - 3.32), minimum 10 bones required.</div>
       </section>
 
       <section id="settings" class="tab">
