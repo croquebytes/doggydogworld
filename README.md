@@ -4,12 +4,17 @@ Two pups inherit a sleepy biscuit stand and turn it into a galaxy-class snack em
 
 ## Features
 - **Idle core loop** - click to bake treats, buy buildings for TPS, prestige for Alpha Bones.
-- **Pack Dispatch & Missions** - send pups on timed quests for loot and reputation.
-- **Human Influencers & Clout** - launch campaigns with viral spikes and audience upgrades.
-- **Space Routes & Stardust** - ship treats to Luna, Mars, and beyond for late-game currency.
+- **Crit-click system** - 10% base chance for 3x critical bakes; build combos with rapid clicking (max 10x combo = +50% power).
+- **Pack Dispatch & Missions** - send pups on timed quests for loot and reputation with visual progress bars.
+- **Human Influencers & Clout** - launch campaigns with viral spikes and audience upgrades; real-time progress tracking.
+- **Space Routes & Stardust** - ship treats to Luna, Mars, and beyond for late-game currency with mission timers.
+- **Research Queue** - queue long-term breakthroughs with progress visualization.
 - **Closed-form Buy Max and hotkeys** - Shift = x10, Ctrl/Cmd = x100, M repeats the last building, P ascends.
 - **Sprite helper** - RAF-driven canvas sprites for Scout, Patch, and the tracker pup (hooks live in sprite.js + SpriteManager).
-- **Achievements and toasts** - nine starter achievements with permanent buffs plus a lightweight toast stack.
+- **Achievements system** - 33 achievements with permanent buffs covering clicks, buildings, production, and prestige.
+- **Rich upgrade tree** - 27 upgrades spanning all buildings from early-game clicks to late-game Dyson spheres.
+- **Interactive tooltips** - hover over any building or upgrade for detailed stats, percentages, and scaling info.
+- **Progress bars** - visual feedback for all timed activities (dispatch, research, space routes, marketing campaigns).
 - **Autosave, import/export, offline progress** - everything persists in localStorage; manual save is one click from the tracker.
 
 ## Run
@@ -39,12 +44,17 @@ README.md
 - Tracker samples TPS six times per second for averages and future sparkline hooks.
 
 ## Controls & Hotkeys
-- Click **Bake Treat** for manual gains (Scout hops).
+- Click **Bake Treat** for manual gains (Scout hops):
+  - 10% chance for critical bake (3x multiplier) - increases with combo
+  - Rapid clicking (under 500ms between clicks) builds combo multiplier
+  - Combo displayed on button in real-time (max 10x combo = +50% power)
+  - Combo resets if you wait more than 500ms between clicks
 - Buy buildings via buttons or hotkeys:
   - `1-8` buy the corresponding building (`Shift` = x10, `Ctrl/Cmd` = x100).
   - `M` repeats Buy Max on the last building selected.
   - `P` prompts Pack Ascension.
 - Tracker footer buttons: quick Save / Export / Settings jump.
+- Hover over buildings and upgrades for detailed tooltips with stats and percentages.
 
 ## Tracker & Event Feed
 - **Collapsed**: Treats, TPS, Bones, animated pup.
