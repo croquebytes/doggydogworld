@@ -477,8 +477,14 @@ function buildingTPS(id) {
   return def[3] * Game.mod[id] * Game.mod.global;
 }
 
+function internTPS() {
+  return State.interns * 0.25 * Game.mod.click * Game.mod.global;
+}
+
 function totalTPS() {
-  return DATA.buildings.reduce((sum, [id]) => sum + State.buildings[id] * buildingTPS(id), 0);
+  const buildingTotal = DATA.buildings.reduce((sum, [id]) => sum + State.buildings[id] * buildingTPS(id), 0);
+  const internTotal = internTPS();
+  return buildingTotal + internTotal;
 }
 
 function safeLog10(value) {
@@ -1203,15 +1209,23 @@ function renderTracker() {
 
   const perList = document.getElementById("trackerBreakdown");
   if (perList) {
-    const rows = DATA.buildings
-      .map(([id, name]) => {
-        const count = State.buildings[id];
-        if (!count) return null;
-        const each = buildingTPS(id);
-        const total = each * count;
-        return { name, count, each, total };
-      })
-      .filter(Boolean)
+    const producers = [];
+
+    if (State.interns > 0) {
+      const each = 0.25 * Game.mod.click * Game.mod.global;
+      const total = internTPS();
+      producers.push({ name: "Pup Interns", count: State.interns, each, total });
+    }
+
+    DATA.buildings.forEach(([id, name]) => {
+      const count = State.buildings[id];
+      if (!count) return;
+      const each = buildingTPS(id);
+      const total = each * count;
+      producers.push({ name, count, each, total });
+    });
+
+    const rows = producers
       .sort((a, b) => b.total - a.total)
       .slice(0, 5)
       .map(entry => `<li><span>${entry.name}</span><span>${entry.count} x ${num.format(entry.each)}</span><span>${num.format(entry.total)}/s</span></li>`)
@@ -1461,15 +1475,27 @@ function render() {
   const buyAutoBtn = $("#buyAuto");
   if (buyAutoBtn) {
     const internCost = DATA.internCost * Math.pow(1.2, State.interns);
+    const internProduction = 0.25 * Game.mod.click * Game.mod.global;
+    const tooltip = `Pup Intern\n\nEach intern produces ${num.format2(internProduction)}/s\nScales with click power and global multipliers\n\nCost increases by 20% per intern\nNext cost: ${num.format(internCost)}`;
     buyAutoBtn.textContent = `Hire Pup Intern (${num.format(internCost)})`;
+    buyAutoBtn.setAttribute("data-tooltip", encodeURIComponent(tooltip));
   }
 
-    $("#productionList").innerHTML = DATA.buildings.map(([id, name]) => {
+    const productionLines = [];
+
+  if (State.interns > 0) {
+    const internTotal = internTPS();
+    productionLines.push(`<li>Pup Interns: ${State.interns} x ${num.format2(0.25 * Game.mod.click * Game.mod.global)} = <b>${num.format2(internTotal)}</b> /s</li>`);
+  }
+
+  DATA.buildings.forEach(([id, name]) => {
     const count = State.buildings[id];
-    if (count <= 0) return "";
+    if (count <= 0) return;
     const tps = count * buildingTPS(id);
-    return `<li>${name}: ${count} x ${num.format2(buildingTPS(id))} = <b>${num.format2(tps)}</b> /s</li>`;
-  }).join("");
+    productionLines.push(`<li>${name}: ${count} x ${num.format2(buildingTPS(id))} = <b>${num.format2(tps)}</b> /s</li>`);
+  });
+
+  $("#productionList").innerHTML = productionLines.join("");
 
   const upgradesMarkup = DATA.upgrades.map(up => {
     const [id, name, desc, cost] = up;
