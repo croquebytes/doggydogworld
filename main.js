@@ -63,6 +63,20 @@ const DATA = {
     ["global1", "Pupper Pride", "All production +50%", 7500, {type: "treats", amt: 5000}, g => g.mod.global *= 1.5],
     ["global2", "Pack Synergy", "All production +75%", 25000, {type: "treats", amt: 15000}, g => g.mod.global *= 1.75],
     ["truck1", "Express Delivery", "Trucks +100% TPS", 40000, {type: "owned", id: "truck", amt: 5}, g => g.mod.truck *= 2],
+    ["click3", "Diamond Whisker", "Clicks +200%", 75000, {type: "treats", amt: 50000}, g => g.mod.click *= 3],
+    ["line2", "Precision Engineering", "Treat Lines +150% TPS", 100000, {type: "owned", id: "line", amt: 15}, g => g.mod.line *= 2.5],
+    ["truck2", "Hyper Delivery", "Trucks +150% TPS", 150000, {type: "owned", id: "truck", amt: 15}, g => g.mod.truck *= 2.5],
+    ["robot1", "AI Barking", "Robo-Barkers +100% TPS", 200000, {type: "owned", id: "robot", amt: 5}, g => g.mod.robot *= 2],
+    ["robot2", "Neural Networks", "Robo-Barkers +150% TPS", 500000, {type: "owned", id: "robot", amt: 15}, g => g.mod.robot *= 2.5],
+    ["lab1", "Molecular Mastery", "Flavor Labs +100% TPS", 1000000, {type: "owned", id: "lab", amt: 3}, g => g.mod.lab *= 2],
+    ["lab2", "Quantum Flavor", "Flavor Labs +200% TPS", 5000000, {type: "owned", id: "lab", amt: 10}, g => g.mod.lab *= 3],
+    ["global3", "Brand Recognition", "All production +100%", 500000, {type: "treats", amt: 250000}, g => g.mod.global *= 2],
+    ["global4", "Treat Empire", "All production +150%", 2000000, {type: "treats", amt: 1000000}, g => g.mod.global *= 2.5],
+    ["click4", "Master's Touch", "Clicks +300%", 1000000, {type: "treats", amt: 500000}, g => g.mod.click *= 4],
+    ["launch1", "Orbital Boosters", "Space Kennels +100% TPS", 10000000, {type: "owned", id: "launch", amt: 2}, g => g.mod.launch *= 2],
+    ["launch2", "Warp Drive", "Space Kennels +200% TPS", 50000000, {type: "owned", id: "launch", amt: 5}, g => g.mod.launch *= 3],
+    ["dyson1", "Solar Arrays", "Biscuit Dysons +100% TPS", 100000000, {type: "owned", id: "dyson", amt: 1}, g => g.mod.dyson *= 2],
+    ["dyson2", "Stellar Harvesting", "Biscuit Dysons +300% TPS", 1000000000, {type: "owned", id: "dyson", amt: 3}, g => g.mod.dyson *= 4],
   ],
   research: [
     ["res1", "Quality Control", "All buildings +25%", 5e4, g => g.mod.global *= 1.25],
@@ -102,6 +116,21 @@ const ACHIEVEMENTS = [
   { id: "prestige_first", name: "Alpha Initiate", reward: "+5% global production", check: function () { return State.prestige.bones >= 1; }, effect: function (mod) { mod.global *= 1.05; } },
   { id: "prestige_five", name: "Pack Leader", reward: "+5% global production", check: function () { return State.prestige.bones >= 5; }, effect: function (mod) { mod.global *= 1.05; } },
   { id: "space_pup", name: "Space Pup", reward: "+10% Space Kennel power", check: function () { return State.buildings.launch >= 1; }, effect: function (mod) { mod.launch *= 1.1; } },
+  { id: "first_crit", name: "Golden Bake", reward: "+10% crit chance", check: function () { return (State.meta.critClicks || 0) >= 1; }, effect: function (mod) { mod.click *= 1.05; } },
+  { id: "crit_master", name: "Master Baker", reward: "+5% click power", check: function () { return (State.meta.critClicks || 0) >= 50; }, effect: function (mod) { mod.click *= 1.05; } },
+  { id: "combo_five", name: "Rapid Fire", reward: "+5% click power", check: function () { return (State.meta.clickCombo || 0) >= 5; }, effect: function (mod) { mod.click *= 1.05; } },
+  { id: "thousand_clicks", name: "Clicking Legend", reward: "+10% click power", check: function () { return State.meta.clicks >= 1000; }, effect: function (mod) { mod.click *= 1.1; } },
+  { id: "hundred_buildings", name: "Mega Factory", reward: "+8% global production", check: function () { return Object.values(State.buildings).reduce(function(sum, v) { return sum + v; }, 0) >= 100; }, effect: function (mod) { mod.global *= 1.08; } },
+  { id: "ten_interns", name: "HR Department", reward: "+10% click power", check: function () { return State.interns >= 10; }, effect: function (mod) { mod.click *= 1.1; } },
+  { id: "ten_lines", name: "Assembly King", reward: "+10% Treat Line output", check: function () { return State.buildings.line >= 10; }, effect: function (mod) { mod.line *= 1.1; } },
+  { id: "ten_trucks", name: "Logistics Pro", reward: "+10% Truck output", check: function () { return State.buildings.truck >= 10; }, effect: function (mod) { mod.truck *= 1.1; } },
+  { id: "five_robots", name: "Automation Expert", reward: "+10% Robo-Barker output", check: function () { return State.buildings.robot >= 5; }, effect: function (mod) { mod.robot *= 1.1; } },
+  { id: "five_labs", name: "Science Pup", reward: "+15% Flavor Lab output", check: function () { return State.buildings.lab >= 5; }, effect: function (mod) { mod.lab *= 1.15; } },
+  { id: "billion_treats", name: "Treat Billionaire", reward: "+10% global production", check: function () { return State.meta.lifetimeTreats >= 1e9; }, effect: function (mod) { mod.global *= 1.1; } },
+  { id: "tps_10000", name: "Industrial Revolution", reward: "+8% global production", check: function () { return totalTPS() >= 10000; }, effect: function (mod) { mod.global *= 1.08; } },
+  { id: "ten_upgrades", name: "Tech Savvy", reward: "+5% global production", check: function () { return Object.keys(State.upgradesBought).length >= 10; }, effect: function (mod) { mod.global *= 1.05; } },
+  { id: "prestige_ten", name: "Alpha Elite", reward: "+10% global production", check: function () { return State.prestige.bones >= 10; }, effect: function (mod) { mod.global *= 1.1; } },
+  { id: "prestige_twenty", name: "Omega Leader", reward: "+15% global production", check: function () { return State.prestige.bones >= 20; }, effect: function (mod) { mod.global *= 1.15; } },
 ];
 
 const MILESTONES = {
@@ -180,6 +209,9 @@ const State = {
     lifetimeTreats: 0,
     reputation: 0,
     bulkDiscountTimer: 0,
+    clickCombo: 0,
+    lastClickTime: 0,
+    critClicks: 0,
   },
   metrics: {
     samples: Array(90).fill(0),
@@ -961,6 +993,15 @@ function updateNextGoal() {
   progressEl.style.width = progress + "%";
 }
 
+function updateClickButton() {
+  const clickBtn = $("#clickTreat");
+  if (!clickBtn) return;
+  const clickPower = DATA.baseClick * Game.mod.click * Game.mod.global;
+  const combo = State.meta.clickCombo || 0;
+  const comboText = combo > 0 ? ` [x${(1 + combo * 0.05).toFixed(2)} COMBO!]` : "";
+  clickBtn.textContent = `Bake Treat (+${num.format(clickPower)})${comboText}`;
+}
+
 function applyMilestoneRewards(mod) {
   if (!State.milestones) return;
   for (const buildingId in State.milestones) {
@@ -994,6 +1035,9 @@ function ensureStateIntegrity() {
     reputation: 0,
     bulkDiscountTimer: 0,
     eventTimer: 180,
+    clickCombo: 0,
+    lastClickTime: 0,
+    critClicks: 0,
   }, State.meta || {});
 
   if (!State.metrics || !Array.isArray(State.metrics.samples) || !Array.isArray(State.metrics.deltaTreats)) {
@@ -1383,15 +1427,22 @@ function renderBuildings() {
     const owned = State.buildings[id];
     const cost = buildingCost(id, owned);
     const tps = buildingTPS(id);
-    const tooltip = `Base TPS: ${num.format2(baseTPS)}\nScale: x${scale}\nOwned: ${owned}`;
-    return `<div class="card">
+    const totalProduction = owned * tps;
+    const currentTotalTPS = totalTPS();
+    const percentOfTotal = currentTotalTPS > 0 ? (totalProduction / currentTotalTPS * 100).toFixed(1) : 0;
+
+    const tooltip = `${name}\n\nBase TPS: ${num.format2(baseTPS)}\nCurrent TPS per unit: ${num.format2(tps)}\nTotal production: ${num.format2(totalProduction)}/s\n(${percentOfTotal}% of total)\n\nCost scale: x${scale.toFixed(3)}\nOwned: ${owned}`;
+
+    const buyMaxTooltip = `Buy Max: ${name}\n\nPurchase as many as you can afford using an optimized bulk-buy algorithm.`;
+
+    return `<div class="card ${!canAfford(cost) ? "locked" : ""}">
       <h4>${name}</h4>
       <div class="meta">Owned: ${owned}</div>
       <div class="meta">Each: ${num.format2(tps)}/s</div>
       <div class="meta">Next Cost: ${num.format(cost)}</div>
       <div class="actions">
         <button class="buy" data-buy="${id}" data-tooltip="${encodeURIComponent(tooltip)}">Buy 1</button>
-        <button class="buy" data-buymax="${id}" data-tooltip="${encodeURIComponent("Purchase as many " + name + " as possible.")}">Buy Max</button>
+        <button class="buy" data-buymax="${id}" data-tooltip="${encodeURIComponent(buyMaxTooltip)}">Buy Max</button>
       </div>
     </div>`;
   }).join("");
@@ -1442,6 +1493,7 @@ function render() {
   renderSpaceSection();
   renderPolicySection();
   updateNextGoal();
+  updateClickButton();
 
   $("#bonesGain").textContent = num.format(bonesGainIfAscend(State.treats));
 }
@@ -1540,9 +1592,13 @@ function renderDispatchSection() {
   }
   if (active) {
     active.innerHTML = (State.dispatch.active || []).map(function (entry) {
+      const progress = ((entry.duration - entry.remaining) / entry.duration * 100).toFixed(1);
       return `<div class="card">
         <h4>${entry.name}</h4>
-        <div class="meta">Remaining: ${formatTime(entry.remaining)}</div>
+        <div class="meta">Remaining: ${formatTime(entry.remaining)} / ${formatTime(entry.duration)}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
         <div class="meta">Reward: ${entry.reward.treats ? num.format(entry.reward.treats) + " treats" : ""}</div>
       </div>`;
     }).join("") || `<div class="card"><p>No active missions.</p></div>`;
@@ -1564,11 +1620,20 @@ function renderMarketingSection() {
   if (campaignList) {
     campaignList.innerHTML = availableCampaigns().map(function (c) {
       const running = State.marketing.active && State.marketing.active.id === c.id;
-      return `<div class="card">
+      let progressBar = "";
+      if (running && State.marketing.active) {
+        const progress = ((c.duration - State.marketing.active.timeRemaining) / c.duration * 100).toFixed(1);
+        progressBar = `<div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="meta">Remaining: ${formatTime(State.marketing.active.timeRemaining)}</div>`;
+      }
+      return `<div class="card ${running ? "active" : ""}">
         <h4>${c.name}</h4>
         <div class="meta">Cost: ${c.cost} clout</div>
         <div class="meta">Multiplier: ${c.multiplier.toFixed(2)}x</div>
         <div class="meta">Duration: ${formatTime(c.duration)}</div>
+        ${progressBar}
         <div class="actions">
           <button class="${running ? "locked" : "buy"}" data-campaign="${c.id}" ${running ? "disabled" : ""}>${running ? "Active" : "Launch"}</button>
         </div>
@@ -1598,9 +1663,14 @@ function renderSpaceSection() {
   }
   if (active) {
     active.innerHTML = (State.space.active || []).map(function (entry) {
+      const progress = ((entry.duration - entry.remaining) / entry.duration * 100).toFixed(1);
       return `<div class="card">
         <h4>${entry.name}</h4>
-        <div class="meta">Remaining: ${formatTime(entry.remaining)}</div>
+        <div class="meta">Remaining: ${formatTime(entry.remaining)} / ${formatTime(entry.duration)}</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="meta">ETA: ${formatTime(entry.remaining)}</div>
       </div>`;
     }).join("") || `<div class="card"><p>No active routes.</p></div>`;
   }
@@ -1710,11 +1780,34 @@ function bindUI() {
   const clickTreatBtn = $("#clickTreat");
   if (clickTreatBtn) {
     clickTreatBtn.addEventListener("click", function() {
-      const gain = DATA.baseClick * Game.mod.click * Game.mod.global;
+      const now = Date.now();
+      const timeSinceLastClick = now - (State.meta.lastClickTime || 0);
+
+      let comboMultiplier = 1;
+      if (timeSinceLastClick < 500) {
+        State.meta.clickCombo = Math.min(10, (State.meta.clickCombo || 0) + 1);
+        comboMultiplier = 1 + (State.meta.clickCombo * 0.05);
+      } else {
+        State.meta.clickCombo = 0;
+      }
+      State.meta.lastClickTime = now;
+
+      const critChance = 0.1 + (State.meta.clickCombo * 0.01);
+      const isCrit = Math.random() < critChance;
+      const critMultiplier = isCrit ? 3 : 1;
+
+      if (isCrit) {
+        State.meta.critClicks = (State.meta.critClicks || 0) + 1;
+        Toasts.push(`Critical bake! x${critMultiplier}`, "success");
+      }
+
+      let gain = DATA.baseClick * Game.mod.click * Game.mod.global * comboMultiplier * critMultiplier;
       State.meta.clicks += 1;
       State.treats += gain;
       SpriteManager.trigger("scout", "hop");
       SpriteManager.registerTreatGain(gain);
+
+      updateClickButton();
     });
   }
 
